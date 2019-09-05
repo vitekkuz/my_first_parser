@@ -12,7 +12,7 @@ def parser_of_dns(base_url, headers):
     request = session.get(base_url, headers=headers)
     notebooks = []  # создали список
     if request.status_code == 200:
-        soup = bs(request.content, 'html.parser')
+        soup = bs(request.content, 'lxml')
         divs = soup.find_all('div', attrs={'class': 'catalog-item'})
         for div in divs:
             name = div.find('a', attrs={'class': 'ui-link'}).text

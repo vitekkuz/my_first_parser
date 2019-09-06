@@ -4,30 +4,50 @@ from bs4 import BeautifulSoup as bs
 headers = {'accept': '*/*',
            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.143 YaBrowser/19.7.2.455 Yowser/2.5 Safari/537.36'}
 
-base_url_DNS = 'https://www.dns-shop.ru/catalog/17a892f816404e77/noutbuki/?order=1&groupBy=none&stock=2'
 
-
-def parser_of_dns(base_url, headers):
+def parser_of_dns(headers):
     session = requests.Session()
-    request = session.get(base_url, headers=headers)
-    notebooks = []  # создали список
-    if request.status_code == 200:
-        soup = bs(request.content, 'lxml')
-        divs = soup.find_all('div', attrs={'class': 'catalog-item'})
-        for div in divs:
-            name = div.find('a', attrs={'class': 'ui-link'}).text
-            href = div.find('a', attrs={'class': 'ui-link'})['href']
-            href = f'https://dns-shop.ru{href}'
-            description = div.find('span', attrs={'class': 'product-info__title-description'}).text
-            description = description[1:len(description)-1]
-            notebooks.append({
-                'name': name,
-                'href': href,
-                'description': description
-            })
-            print(notebooks)
-    else:
-        print('error')
+    notebooks = []  # создали список ноутбуков
+    urls = []
+    for i in range(1, 11):
+        url = f'https://www.dns-shop.ru/catalog/17a892f816404e77/noutbuki/?p={i}&order=1&groupBy=none&stock=2'
+        urls.append(url)
+    for url in urls:
+        request = session.get(url, headers=headers)
+        if request.status_code == 200:
+            soup = bs(request.content, 'lxml')
+            divs = soup.find_all('div', attrs={'class': 'catalog-item'})
+            for div in divs:
+                name = div.find('a', attrs={'class': 'ui-link'}).text
+                href = div.find('a', attrs={'class': 'ui-link'})['href']
+                href = f'https://dns-shop.ru{href}'
+                description = div.find('span', attrs={'class': 'product-info__title-description'}).text
+                description = description[1:len(description) - 1]
+                description = description.split(sep=', ')
+                try:
+                    dict = {
+                        'name': name,
+                        'href': href,
+                        'screen resolution': description[0],
+                        'matrix': description[1],
+                        'cpu': description[2],
+                        'memory frequency': description[3],
+                        'ram': description[4],
+                        'rom': description[5],
+                        'igpu': description[6],
+                        'wifi': description[7],
+                        'BT': description[8],
+                        'OS': description[9]
+                    }
+                except:
+                    dict = {
+                        'name': name,
+                        'href': href,
+                        'description': description
+                    }
+                notebooks.append(dict)
 
+        else:
+            print('error')
 
-parser_of_dns(base_url_DNS, headers)
+parser_of_dns(headers)
